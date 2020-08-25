@@ -55,6 +55,7 @@ public abstract class VFS {
       impls.addAll(Arrays.asList((Class<? extends VFS>[]) IMPLEMENTATIONS));
 
       // Try each implementation class until a valid one is found
+      // 循环，看VFS 的实现类是否有无效的
       VFS vfs = null;
       for (int i = 0; vfs == null || !vfs.isValid(); i++) {
         Class<? extends VFS> impl = impls.get(i);
@@ -83,6 +84,10 @@ public abstract class VFS {
    * then this method returns null.
    *
    * @return single instance of VFS
+   */
+  /**
+   * 这里通过VFSHolder 类来实现单例模式
+   * @return
    */
   public static VFS getInstance() {
     return VFSHolder.INSTANCE;
@@ -206,6 +211,7 @@ public abstract class VFS {
    *            value passed to {@link #getResources(String)} to get the resource URL.
    * @return A list containing the names of the child resources.
    * @throws IOException If I/O errors occur
+   * 这个方法交与子类实现
    */
   protected abstract List<String> list(URL url, String forPath) throws IOException;
 

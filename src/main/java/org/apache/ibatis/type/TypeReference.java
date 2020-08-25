@@ -37,6 +37,7 @@ public abstract class TypeReference<T> {
     Type genericSuperclass = clazz.getGenericSuperclass();
     if (genericSuperclass instanceof Class) {
       // try to climb up the hierarchy until meet something useful
+     // 递归寻找当前类的父类是TypeReference
       if (TypeReference.class != genericSuperclass) {
         return getSuperclassTypeParameter(clazz.getSuperclass());
       }
@@ -44,9 +45,10 @@ public abstract class TypeReference<T> {
       throw new TypeException("'" + getClass() + "' extends TypeReference but misses the type parameter. "
         + "Remove the extension or add a type parameter to it.");
     }
-
+    // 获取范型对应的真正类型
     Type rawType = ((ParameterizedType) genericSuperclass).getActualTypeArguments()[0];
     // TODO remove this when Reflector is fixed to return Types
+    //如果这个类型也是参数化类型，比如过是 List<String> , 那么获取真正的类型 ,list
     if (rawType instanceof ParameterizedType) {
       rawType = ((ParameterizedType) rawType).getRawType();
     }

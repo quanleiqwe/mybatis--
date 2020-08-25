@@ -31,6 +31,7 @@ import org.apache.ibatis.cache.CacheException;
  * This way, other threads will wait until this element is filled instead of hitting the database.
  *
  * @author Eduardo Macarron
+ * 阻塞版本的缓存实现
  *
  */
 public class BlockingCache implements Cache {
@@ -63,6 +64,12 @@ public class BlockingCache implements Cache {
     }
   }
 
+  /**
+   * 如果缓存中有对应的key 那么释放锁，否则不释放锁， 接下来会进行数据库的查询，查询完，将调用 putObject 方法，然后释放锁，在获取数据的期间，只有当前线程有资格去查询数据库，其他的线程都被阻塞了
+   * @param key
+   *          The key
+   * @return
+   */
   @Override
   public Object getObject(Object key) {
     acquireLock(key);
@@ -107,6 +114,7 @@ public class BlockingCache implements Cache {
 
   private void releaseLock(Object key) {
     ReentrantLock lock = locks.get(key);
+   //只有当前线程持有的该锁，才可以释放
     if (lock.isHeldByCurrentThread()) {
       lock.unlock();
     }

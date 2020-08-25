@@ -20,7 +20,7 @@ import java.sql.SQLException;
 
 /**
  * A parameter handler sets the parameters of the {@code PreparedStatement}.
- *
+ * mysql 参数的一个处理器，设置 sql 中占位符的值，用于  PreparedStatement， CallableStatement
  * @author Clinton Begin
  */
 public interface ParameterHandler {

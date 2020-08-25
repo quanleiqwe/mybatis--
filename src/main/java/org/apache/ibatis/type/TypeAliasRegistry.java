@@ -35,6 +35,7 @@ import org.apache.ibatis.io.Resources;
 /**
  * @author Clinton Begin
  */
+// 无论是查找还是注册，统一使用小写，降低风险
 public class TypeAliasRegistry {
 
   private final Map<String, Class<?>> typeAliases = new HashMap<>();
@@ -125,6 +126,11 @@ public class TypeAliasRegistry {
     registerAliases(packageName, Object.class);
   }
 
+  /**
+   * 扫描指定包下的类，进行别名注册
+   * @param packageName
+   * @param superType
+   */
   public void registerAliases(String packageName, Class<?> superType) {
     ResolverUtil<Class<?>> resolverUtil = new ResolverUtil<>();
     resolverUtil.find(new ResolverUtil.IsA(superType), packageName);
@@ -147,11 +153,13 @@ public class TypeAliasRegistry {
     registerAlias(alias, type);
   }
 
+  // 注册别名
   public void registerAlias(String alias, Class<?> value) {
     if (alias == null) {
       throw new TypeException("The parameter alias cannot be null");
     }
     // issue #748
+    //转化成小写
     String key = alias.toLowerCase(Locale.ENGLISH);
     if (typeAliases.containsKey(key) && typeAliases.get(key) != null && !typeAliases.get(key).equals(value)) {
       throw new TypeException("The alias '" + alias + "' is already mapped to the value '" + typeAliases.get(key).getName() + "'.");

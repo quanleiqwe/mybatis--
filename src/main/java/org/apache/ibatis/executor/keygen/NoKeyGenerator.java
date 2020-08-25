@@ -20,7 +20,7 @@ import java.sql.Statement;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.mapping.MappedStatement;
 
-/**
+/** 生成主键的类,
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -28,7 +28,6 @@ public class NoKeyGenerator implements KeyGenerator {
 
   /**
    * A shared instance.
-   *
    * @since 3.4.3
    */
   public static final NoKeyGenerator INSTANCE = new NoKeyGenerator();

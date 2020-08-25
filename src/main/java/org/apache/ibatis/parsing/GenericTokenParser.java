@@ -30,11 +30,20 @@ public class GenericTokenParser {
     this.handler = handler;
   }
 
+  /**
+   * 该方法有以下参数需要注意下
+   * start : 下一个 openToken 的下标
+   * offset : 偏移量，从那个下标向后寻找token ，一般前一个closeToken的下一位
+   * builder: 最后结果
+   * @param text
+   * @return
+   */
   public String parse(String text) {
     if (text == null || text.isEmpty()) {
       return "";
     }
     // search open token
+    // 寻找开始的token,如果没有找到，直接返回
     int start = text.indexOf(openToken);
     if (start == -1) {
       return text;

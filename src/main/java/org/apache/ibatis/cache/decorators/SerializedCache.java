@@ -28,7 +28,7 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 import org.apache.ibatis.io.Resources;
 
-/**
+/** 序列化的缓存，放入对象时，将对象序列化后在放入， 取出对象时，先进行反序列化，在进行返回
  * @author Clinton Begin
  */
 public class SerializedCache implements Cache {

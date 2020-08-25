@@ -17,6 +17,8 @@ package org.apache.ibatis.scripting.xmltags;
 
 /**
  * @author Frank D. Martinez [mnesarco]
+ *  bind 节点，该节点可以创建一个参数值，并且记录到 上下文
+ *  <bind name="name" value="1"/>
  */
 public class VarDeclSqlNode implements SqlNode {
 

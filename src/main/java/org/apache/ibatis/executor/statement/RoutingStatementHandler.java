@@ -29,7 +29,8 @@ import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
-/**
+/** 该类并没有实现具体逻辑，所有的逻辑都是通过 delegate 调用所得
+ *  使用了工厂模式和策略模式,不太像装饰器，并没有提供功能上的扩展
  * @author Clinton Begin
  */
 public class RoutingStatementHandler implements StatementHandler {
@@ -37,7 +38,9 @@ public class RoutingStatementHandler implements StatementHandler {
   private final StatementHandler delegate;
 
   public RoutingStatementHandler(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
-
+    /**
+     * 根据不同的statementType 生成对应的 StatementHandler
+     */
     switch (ms.getStatementType()) {
       case STATEMENT:
         delegate = new SimpleStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);

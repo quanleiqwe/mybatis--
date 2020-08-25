@@ -25,8 +25,8 @@
   <select id="getUsersByIdList" resultType="org.apache.ibatis.submitted.use_actual_param_name.User">
     select * from users where id in
     <foreach item="id" collection="list" open="(" close=")"
-      separator=",">
-      #{id}
+      separator="," index="index">
+      #{id} and id =#{ids[${index}]}
     </foreach>
   </select>
 

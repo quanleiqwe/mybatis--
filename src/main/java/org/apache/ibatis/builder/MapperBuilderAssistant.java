@@ -51,6 +51,7 @@ import org.apache.ibatis.type.TypeHandler;
 
 /**
  * @author Clinton Begin
+ * 在mybatis 有很多以 Assistant 结尾的类，之所以要这样做，是为了让xml 和注解用同一套，增加复用性
  */
 public class MapperBuilderAssistant extends BaseBuilder {
 
@@ -128,6 +129,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean readWrite,
       boolean blocking,
       Properties props) {
+    //构建cache
     Cache cache = new CacheBuilder(currentNamespace)
         .implementation(valueOrDefault(typeClass, PerpetualCache.class))
         .addDecorator(valueOrDefault(evictionClass, LruCache.class))
@@ -191,6 +193,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       List<ResultMapping> extendedResultMappings = new ArrayList<>(resultMap.getResultMappings());
       extendedResultMappings.removeAll(resultMappings);
       // Remove parent constructor if this resultMap declares a constructor.
+      //如果当前声明了构造函数，移除父类的构造函数
       boolean declaresConstructor = false;
       for (ResultMapping resultMapping : resultMappings) {
         if (resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR)) {
@@ -198,14 +201,18 @@ public class MapperBuilderAssistant extends BaseBuilder {
           break;
         }
       }
+      //移除
       if (declaresConstructor) {
         extendedResultMappings.removeIf(resultMapping -> resultMapping.getFlags().contains(ResultFlag.CONSTRUCTOR));
       }
+      //将父类的扩展Mapping 添加到当前
       resultMappings.addAll(extendedResultMappings);
     }
+    //构建resultMap
     ResultMap resultMap = new ResultMap.Builder(configuration, id, type, resultMappings, autoMapping)
         .discriminator(discriminator)
         .build();
+    //
     configuration.addResultMap(resultMap);
     return resultMap;
   }
@@ -426,6 +433,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     Class<?> javaTypeClass = resolveResultJavaType(resultType, property, javaType);
     TypeHandler<?> typeHandlerInstance = resolveTypeHandler(javaTypeClass, typeHandler);
     List<ResultMapping> composites;
+    // 处理复杂的列名
     if ((nestedSelect == null || nestedSelect.isEmpty()) && (foreignColumn == null || foreignColumn.isEmpty())) {
       composites = Collections.emptyList();
     } else {
@@ -510,6 +518,11 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return columns;
   }
 
+  /**
+   * 解析复杂token , 将{property1=column1,property2=column2} 形式解析成 ResultMapping 形式
+   * @param columnName
+   * @return
+   */
   private List<ResultMapping> parseCompositeColumnName(String columnName) {
     List<ResultMapping> composites = new ArrayList<>();
     if (columnName != null && (columnName.indexOf('=') > -1 || columnName.indexOf(',') > -1)) {

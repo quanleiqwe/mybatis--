@@ -99,7 +99,7 @@ public class XMLConfigBuilder extends BaseBuilder {
     parseConfiguration(parser.evalNode("/configuration"));
     return configuration;
   }
-
+  // 对configuration 节点下进行解析
   private void parseConfiguration(XNode root) {
     try {
       // issue #117 read properties first
@@ -221,6 +221,7 @@ public class XMLConfigBuilder extends BaseBuilder {
 
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
+      //url 和 resource 只能有一个
       Properties defaults = context.getChildrenAsProperties();
       String resource = context.getStringAttribute("resource");
       String url = context.getStringAttribute("url");
@@ -240,7 +241,7 @@ public class XMLConfigBuilder extends BaseBuilder {
       configuration.setVariables(defaults);
     }
   }
-
+  // 从Properties 读取属性，进行设置
   private void settingsElement(Properties props) {
     configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty("autoMappingBehavior", "PARTIAL")));
     configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty("autoMappingUnknownColumnBehavior", "NONE")));

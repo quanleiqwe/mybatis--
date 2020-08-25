@@ -53,9 +53,20 @@ import org.apache.ibatis.session.Configuration;
  * @author Kazuki Shimizu
  */
 public final class TypeHandlerRegistry {
-
+  // JDBC 类型 对应的 typeHandler
   private final Map<JdbcType, TypeHandler<?>>  jdbcTypeHandlerMap = new EnumMap<>(JdbcType.class);
+  /**
+   *   java 类型转化为jdbc 类型，可能会对对应多个，比如说String 对应 varchar , text , char
+   *   注意：在调用 TypeHandlerRegistry 的构造函数时，对于该方法
+   *   @see TypeHandlerRegistry#register(java.lang.Class, org.apache.ibatis.type.TypeHandler)
+   *   会在 typeHandlerMap 中的value 对应的key 设为null ,这样通过
+   *   @see TypeHandlerRegistry#getTypeHandler(java.lang.reflect.Type, org.apache.ibatis.type.JdbcType)
+   *   该方法获取的时候，如果获取不到对应的jdbcType , 会以key 为 null 进行获取。
+   *   比如：对于Integer 这种类型，存在着 key 为 Integer, value 的 key 为 null ,value 的value 为 IntegerTypeHandler
+   *
+   */
   private final Map<Type, Map<JdbcType, TypeHandler<?>>> typeHandlerMap = new ConcurrentHashMap<>();
+  // 未知类型对应的typeHandler
   private final TypeHandler<Object> unknownTypeHandler;
   private final Map<Class<?>, TypeHandler<?>> allTypeHandlersMap = new HashMap<>();
 
@@ -229,15 +240,25 @@ public final class TypeHandlerRegistry {
     return getTypeHandler(javaTypeReference.getRawType(), jdbcType);
   }
 
+  /**
+   * 获取类型解析
+   * @param type
+   * @param jdbcType
+   * @param <T>
+   * @return
+   */
   @SuppressWarnings("unchecked")
   private <T> TypeHandler<T> getTypeHandler(Type type, JdbcType jdbcType) {
     if (ParamMap.class.equals(type)) {
       return null;
     }
+    // 根据type 获取对应的 typeHandler
     Map<JdbcType, TypeHandler<?>> jdbcHandlerMap = getJdbcHandlerMap(type);
     TypeHandler<?> handler = null;
     if (jdbcHandlerMap != null) {
+      // 通过 jdbcType 获取
       handler = jdbcHandlerMap.get(jdbcType);
+      // 没找到的话，通过 key 为 null 获取 ，key 为null ,初始化的时候通过 register(java.lang.Class<T>, org.apache.ibatis.type.TypeHandler<? extends T>)来进行设置的
       if (handler == null) {
         handler = jdbcHandlerMap.get(null);
       }
@@ -304,6 +325,7 @@ public final class TypeHandlerRegistry {
     }
   }
 
+  // 获取一个可以用的typeHandler，其实就是获取第一个 ,如果有多个，并且是不同的类型，返回null
   private TypeHandler<?> pickSoleHandler(Map<JdbcType, TypeHandler<?>> jdbcHandlerMap) {
     TypeHandler<?> soleHandler = null;
     for (TypeHandler<?> handler : jdbcHandlerMap.values()) {

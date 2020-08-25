@@ -57,6 +57,7 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
 
   @Override
   public void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException {
+    // 设置空参数,非空参数交与子类实现
     if (parameter == null) {
       if (jdbcType == null) {
         throw new TypeException("JDBC requires that the JdbcType must be specified for all nullable parameters.");
@@ -109,6 +110,8 @@ public abstract class BaseTypeHandler<T> extends TypeReference<T> implements Typ
   public abstract void setNonNullParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;
 
   /**
+   * 以下方法会由子类来进行实现，子类会根据 Result.wasNull 来判断当前取值是否为空，来返回正确的值
+   * 例如：对于Integer 类型来说，0 和 null 代表不同的意思，以下方法可以准确的表达对应的意思
    * Gets the nullable result.
    *
    * @param rs

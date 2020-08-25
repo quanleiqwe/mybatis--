@@ -59,6 +59,7 @@ public class DefaultVFS extends VFS {
       // First, try to find the URL of a JAR file containing the requested resource. If a JAR
       // file is found, then we'll list child resources by reading the JAR.
       URL jarUrl = findJarForResource(url);
+      //如果URL是一个jar 包的URL，那么我们jar 包的读取
       if (jarUrl != null) {
         is = jarUrl.openStream();
         if (log.isDebugEnabled()) {
@@ -92,6 +93,7 @@ public class DefaultVFS extends VFS {
              * the class loader as a child of the current resource. If any line fails
              * then we assume the current resource is not a directory.
              */
+            // 进行读取
             is = url.openStream();
             List<String> lines = new ArrayList<>();
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
@@ -233,7 +235,7 @@ public class DefaultVFS extends VFS {
         continueLoop = false;
       }
     }
-
+    //这里获取jar 包的url
     // Look for the .jar extension and chop off everything after that
     StringBuilder jarUrl = new StringBuilder(url.toExternalForm());
     int index = jarUrl.lastIndexOf(".jar");
@@ -248,7 +250,7 @@ public class DefaultVFS extends VFS {
       }
       return null;
     }
-
+    // 判断url 对应的文件是不是jar 包
     // Try to open and test it
     try {
       URL testUrl = new URL(jarUrl.toString());

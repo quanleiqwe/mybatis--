@@ -51,6 +51,9 @@ public class DefaultSqlSession implements SqlSession {
   private final Executor executor;
 
   private final boolean autoCommit;
+  /**
+   * 当前缓存中是否有脏数据
+   */
   private boolean dirty;
   private List<Cursor<?>> cursorList;
 
@@ -140,6 +143,14 @@ public class DefaultSqlSession implements SqlSession {
     return this.selectList(statement, parameter, RowBounds.DEFAULT);
   }
 
+  /**
+   * 前面所有的以select方法，最终调用的都是这个对象，通过executor 调用
+   * @param statement Unique identifier matching the statement to use.
+   * @param parameter A parameter object to pass to the statement.
+   * @param rowBounds  Bounds to limit object retrieval
+   * @param <E>
+   * @return
+   */
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {
@@ -189,6 +200,12 @@ public class DefaultSqlSession implements SqlSession {
     return update(statement, null);
   }
 
+  /**
+   * 最终insert , update 调用的都是这个方法
+   * @param statement Unique identifier matching the statement to execute.
+   * @param parameter A parameter object to pass to the statement.
+   * @return
+   */
   @Override
   public int update(String statement, Object parameter) {
     try {

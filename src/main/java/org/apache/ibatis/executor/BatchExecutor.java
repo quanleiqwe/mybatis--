@@ -35,22 +35,40 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
-/**
+/** 批处理执行器
  * @author Jeff Butler
  */
 public class BatchExecutor extends BaseExecutor {
 
   public static final int BATCH_UPDATE_RETURN_VALUE = Integer.MIN_VALUE + 1002;
-
+  /**
+   *   缓存了多个statement 对象，每个 Statement缓存了多条sql
+   */
   private final List<Statement> statementList = new ArrayList<>();
+  /**
+   * 批处理结果
+   */
   private final List<BatchResult> batchResultList = new ArrayList<>();
+  /**
+   * 当前sql
+   */
   private String currentSql;
+  /**
+   * 当前statement
+   */
   private MappedStatement currentStatement;
 
   public BatchExecutor(Configuration configuration, Transaction transaction) {
     super(configuration, transaction);
   }
 
+  /**
+   * 批处理只支持insert ,update ,delete ,不支持select
+   * @param ms
+   * @param parameterObject
+   * @return
+   * @throws SQLException
+   */
   @Override
   public int doUpdate(MappedStatement ms, Object parameterObject) throws SQLException {
     final Configuration configuration = ms.getConfiguration();
@@ -58,15 +76,20 @@ public class BatchExecutor extends BaseExecutor {
     final BoundSql boundSql = handler.getBoundSql();
     final String sql = boundSql.getSql();
     final Statement stmt;
+    // 如果和当前的sql 一致, 会将连续添加的，相同模式的sql 添加到同一个statement
     if (sql.equals(currentSql) && ms.equals(currentStatement)) {
       int last = statementList.size() - 1;
       stmt = statementList.get(last);
       applyTransactionTimeout(stmt);
+      // 绑定实参
       handler.parameterize(stmt);// fix Issues 322
+      // 查找对应的batch Result , 并记录用户传入的实参
       BatchResult batchResult = batchResultList.get(last);
+      // 添加参数
       batchResult.addParameterObject(parameterObject);
     } else {
       Connection connection = getConnection(ms.getStatementLog());
+      // 创建新的
       stmt = handler.prepare(connection, transaction.getTimeout());
       handler.parameterize(stmt);    // fix Issues 322
       currentSql = sql;
@@ -74,6 +97,7 @@ public class BatchExecutor extends BaseExecutor {
       statementList.add(stmt);
       batchResultList.add(new BatchResult(ms, sql, parameterObject));
     }
+    // 底层通过statement 的addBatch 方法添加sql
     handler.batch(stmt);
     return BATCH_UPDATE_RETURN_VALUE;
   }
@@ -116,6 +140,7 @@ public class BatchExecutor extends BaseExecutor {
         return Collections.emptyList();
       }
       for (int i = 0, n = statementList.size(); i < n; i++) {
+        // 遍历所有的statement ,批量执行
         Statement stmt = statementList.get(i);
         applyTransactionTimeout(stmt);
         BatchResult batchResult = batchResultList.get(i);
@@ -123,6 +148,7 @@ public class BatchExecutor extends BaseExecutor {
           batchResult.setUpdateCounts(stmt.executeBatch());
           MappedStatement ms = batchResult.getMappedStatement();
           List<Object> parameterObjects = batchResult.getParameterObjects();
+         // 设置数据库生成的自增主键
           KeyGenerator keyGenerator = ms.getKeyGenerator();
           if (Jdbc3KeyGenerator.class.equals(keyGenerator.getClass())) {
             Jdbc3KeyGenerator jdbc3KeyGenerator = (Jdbc3KeyGenerator) keyGenerator;
@@ -133,6 +159,7 @@ public class BatchExecutor extends BaseExecutor {
             }
           }
           // Close statement to close cursor #1109
+          // 关闭statement
           closeStatement(stmt);
         } catch (BatchUpdateException e) {
           StringBuilder message = new StringBuilder();

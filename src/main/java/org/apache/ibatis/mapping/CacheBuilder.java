@@ -90,16 +90,21 @@ public class CacheBuilder {
   }
 
   public Cache build() {
+    // 设置默认的缓存
     setDefaultImplementations();
     Cache cache = newBaseCacheInstance(implementation, id);
+    // 设置缓存的属性
     setCacheProperties(cache);
     // issue #352, do not apply decorators to custom caches
+    //如果是PerpetualCache这个类型的，设置装饰器
     if (PerpetualCache.class.equals(cache.getClass())) {
       for (Class<? extends Cache> decorator : decorators) {
         cache = newCacheDecoratorInstance(decorator, cache);
         setCacheProperties(cache);
       }
+      // 设置标准的装饰器
       cache = setStandardDecorators(cache);
+    //如果不是 LoggingCache 的话，需要添加Logger cache
     } else if (!LoggingCache.class.isAssignableFrom(cache.getClass())) {
       cache = new LoggingCache(cache);
     }
@@ -115,6 +120,11 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 设置标准的装饰器，如果什么参数都不加的话，会添加 LoggingCache， SynchronizedCache ,保持多线程同步
+   * @param cache
+   * @return
+   */
   private Cache setStandardDecorators(Cache cache) {
     try {
       MetaObject metaCache = SystemMetaObject.forObject(cache);
@@ -176,6 +186,7 @@ public class CacheBuilder {
         }
       }
     }
+    //如果cache 类继承类 InitializingObject ， 进行初始化
     if (InitializingObject.class.isAssignableFrom(cache.getClass())) {
       try {
         ((InitializingObject) cache).initialize();
@@ -185,7 +196,7 @@ public class CacheBuilder {
       }
     }
   }
-
+  // 初始化一个Cache
   private Cache newBaseCacheInstance(Class<? extends Cache> cacheClass, String id) {
     Constructor<? extends Cache> cacheConstructor = getBaseCacheConstructor(cacheClass);
     try {
@@ -195,6 +206,11 @@ public class CacheBuilder {
     }
   }
 
+  /**
+   * 这里可以看出，缓存实现类必须有一个参数为string 的构造函数
+   * @param cacheClass
+   * @return
+   */
   private Constructor<? extends Cache> getBaseCacheConstructor(Class<? extends Cache> cacheClass) {
     try {
       return cacheClass.getConstructor(String.class);

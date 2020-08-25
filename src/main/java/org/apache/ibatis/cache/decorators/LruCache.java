@@ -22,13 +22,17 @@ import org.apache.ibatis.cache.Cache;
 
 /**
  * Lru (least recently used) cache decorator.
- *
+ * 最近最少使用 策略
  * @author Clinton Begin
  */
 public class LruCache implements Cache {
 
   private final Cache delegate;
+  // 维护LRU key的一个map , 这里最后实例话的子类是LinkedHashMap,key 为缓存的key , value 也是缓存的 key,
+  // 这里解释一下，当初始化的时候accessOrder 为true,表示根据访问来进行排序，为false则根据插入的顺序进行排序，当添加一个key 的时候，这里我们传的是true，
+  // LinkedHashMap 会将对应的entry移动到末尾，移除一个key时，会根据这个方法removeEldestEntry 来判断是否需要移除最老的entry ，
   private Map<Object, Object> keyMap;
+  // 当前最老得一个key
   private Object eldestKey;
 
   public LruCache(Cache delegate) {
@@ -49,7 +53,7 @@ public class LruCache implements Cache {
   public void setSize(final int size) {
     keyMap = new LinkedHashMap<Object, Object>(size, .75F, true) {
       private static final long serialVersionUID = 4267176411845948333L;
-
+      //该方法会在插入的时候进行调用,来判断是否需要移除最老的entry
       @Override
       protected boolean removeEldestEntry(Map.Entry<Object, Object> eldest) {
         boolean tooBig = size() > size;
@@ -64,11 +68,13 @@ public class LruCache implements Cache {
   @Override
   public void putObject(Object key, Object value) {
     delegate.putObject(key, value);
+    //清除最老的key
     cycleKeyList(key);
   }
 
   @Override
   public Object getObject(Object key) {
+    //将该key 移动到末尾
     keyMap.get(key); // touch
     return delegate.getObject(key);
   }

@@ -14,12 +14,22 @@
  *    limitations under the License.
  */
 package org.apache.ibatis.reflection;
-
+/**
+ * 反射器工厂
+ */
 public interface ReflectorFactory {
-
+  /**
+   * 是否要缓存
+   * @return
+   */
   boolean isClassCacheEnabled();
 
   void setClassCacheEnabled(boolean classCacheEnabled);
 
+  /**
+   * 通过工厂获取对象
+   * @param type
+   * @return
+   */
   Reflector findForClass(Class<?> type);
 }

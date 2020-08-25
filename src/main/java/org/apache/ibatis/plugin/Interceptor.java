@@ -17,14 +17,20 @@ package org.apache.ibatis.plugin;
 
 import java.util.Properties;
 
-/**
+/** 拦截器，可以拦截 ParameterHandler ， ResultSetHandler，StatementHandler，Executor 对应的方法
  * @author Clinton Begin
  */
 public interface Interceptor {
 
   Object intercept(Invocation invocation) throws Throwable;
 
+  /**
+   * 生成代理对象，如果不想被代理，可以直接返回target
+   * @param target
+   * @return
+   */
   default Object plugin(Object target) {
+    // 使用默认修饰符的方法调用，通过plugin 的wrap 静态方法
     return Plugin.wrap(target, this);
   }
 

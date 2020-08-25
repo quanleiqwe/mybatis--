@@ -18,13 +18,13 @@ package org.apache.ibatis.cache;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
- * SPI for cache providers.
+ * SPI for cache providers. 通过SPI的方式来提供Cache providers
  * <p>
- * One instance of cache will be created for each namespace.
+ * One instance of cache will be created for each namespace. 每个命名空间会创建一个缓存实例
  * <p>
- * The cache implementation must have a constructor that receives the cache id as an String parameter.
+ * The cache implementation must have a constructor that receives the cache id as an String parameter.  该接口的实现类必须有一个能够接受cache id 的构造器
  * <p>
- * MyBatis will pass the namespace as id to the constructor.
+ * MyBatis will pass the namespace as id to the constructor. mybatis 会将命名空间作为id 传入构造函数
  *
  * <pre>
  * public MyCache(final String id) {
@@ -91,7 +91,7 @@ public interface Cache {
   int getSize();
 
   /**
-   * Optional. As of 3.2.6 this method is no longer called by the core.
+   * Optional. As of 3.2.6 this method is no longer called by the core.  3.2.6后，mybatis 将不会使用这个方法
    * <p>
    * Any locking needed by the cache must be provided internally by the cache provider.
    *

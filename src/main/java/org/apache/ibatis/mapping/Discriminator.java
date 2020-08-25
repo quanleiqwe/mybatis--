@@ -24,8 +24,13 @@ import org.apache.ibatis.session.Configuration;
  * @author Clinton Begin
  */
 public class Discriminator {
-
+  /**
+   * 对应于结果的resultMapping
+   */
   private ResultMapping resultMapping;
+  /**
+   * 每个case 对应的resultMap id
+   */
   private Map<String, String> discriminatorMap;
 
   Discriminator() {

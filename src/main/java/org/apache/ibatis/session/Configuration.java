@@ -104,29 +104,44 @@ public class Configuration {
 
   protected boolean safeRowBoundsEnabled;
   protected boolean safeResultHandlerEnabled = true;
+  // 返回值映射时，是否要将下划线映射为驼峰
   protected boolean mapUnderscoreToCamelCase;
+  /**
+   * 懒加载是否按需加载，设置为true 的话，调用懒加载代理的任意方法，会加载全部，默认为false ，即按需加载
+   */
   protected boolean aggressiveLazyLoading;
   protected boolean multipleResultSetsEnabled = true;
+  /**
+   * 允许 JDBC 支持自动生成主键，需要数据库驱动支持，默认为false
+   */
   protected boolean useGeneratedKeys;
   protected boolean useColumnLabel = true;
+  // 是否使用缓存
   protected boolean cacheEnabled = true;
   protected boolean callSettersOnNulls;
+  //是否使用参数的真正名称,这样即使没有 Param 注解也可以获取到参数的名称，例：int a ,参数名称就是 a ,需要在编译代码时，加上 -parameters 参数，不然的话编译后的参数是args0 ....
   protected boolean useActualParamName = true;
   protected boolean returnInstanceForEmptyRow;
+  // 是否要去掉而外的空白字符来缩减sql
   protected boolean shrinkWhitespacesInSql;
-
+  //日志前缀
   protected String logPrefix;
+  // log 实现类
   protected Class<? extends Log> logImpl;
+  // VFS 实现类
   protected Class<? extends VFS> vfsImpl;
   protected Class<?> defaultSqlProviderType;
   protected LocalCacheScope localCacheScope = LocalCacheScope.SESSION;
   protected JdbcType jdbcTypeForNull = JdbcType.OTHER;
+  //懒加载
   protected Set<String> lazyLoadTriggerMethods = new HashSet<>(Arrays.asList("equals", "clone", "hashCode", "toString"));
   protected Integer defaultStatementTimeout;
   protected Integer defaultFetchSize;
   protected ResultSetType defaultResultSetType;
   protected ExecutorType defaultExecutorType = ExecutorType.SIMPLE;
+  // 自动映射的行为，默认为 PARTIAL
   protected AutoMappingBehavior autoMappingBehavior = AutoMappingBehavior.PARTIAL;
+  // 如果找不到自动映射的值，此时的行为，默认为None ,即什么也不做
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
 
   protected Properties variables = new Properties();
@@ -135,6 +150,9 @@ public class Configuration {
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
 
   protected boolean lazyLoadingEnabled = false;
+  /**
+   *   代理工厂，默认使用javassist
+   */
   protected ProxyFactory proxyFactory = new JavassistProxyFactory(); // #224 Using internal Javassist instead of OGNL
 
   protected String databaseId;
@@ -145,24 +163,39 @@ public class Configuration {
    * @see <a href='https://code.google.com/p/mybatis/issues/detail?id=300'>Issue 300 (google code)</a>
    */
   protected Class<?> configurationFactory;
-
+  // mapper 注册中心
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+  // 拦截器
   protected final InterceptorChain interceptorChain = new InterceptorChain();
+  // 类型解析注册中心
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry(this);
+  // 类型别名注册中心
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
+  // 数据库驱动注册中心
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
 
+  // 以下几个集合使用了StrictMap 类，这样如果出现重复的，或者是注解和xml对一个方法进行重复定义的话，也会报错
+  // mapper 方法注册中心
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
       .conflictMessageProducer((savedValue, targetValue) ->
           ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
+  // cache
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
+  //返回结果解析器
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
-  protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
-  protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
+  // 参数Map
+  protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
+
+  // 主键生成器，对于某些数据库驱动来说，没有自增id, 此时需要我们自己生成
+  protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
+  // 已经加载过的资源，可能包含xml的全路径，或者是以namespace + 类的全路径
   protected final Set<String> loadedResources = new HashSet<>();
+  //sql 片段
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
+  // 下面四个集合是在项目启动过程中，不完整的集合。如：不完整的sql 语句， 缓存引用，返回结果Map ，method
+  // 出现这样的情况可能有：是真的有问题，还有可能是加载顺序的问题，比如说缓存引用的话，有一些引用，可能在后面加载，此时是加载不道德
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();
   protected final Collection<CacheRefResolver> incompleteCacheRefs = new LinkedList<>();
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
@@ -173,6 +206,7 @@ public class Configuration {
    * references a cache bound to another namespace and the value is the
    * namespace which the actual cache is bound to.
    */
+  // 如果多个namespace 需要使用同一个二级缓存，cacheRefMap就是用来保存这种关系的。 key 为当前的namespace , value 为引用的namespace
   protected final Map<String, String> cacheRefMap = new HashMap<>();
 
   public Configuration(Environment environment) {
@@ -210,6 +244,7 @@ public class Configuration {
     typeAliasRegistry.registerAlias("CGLIB", CglibProxyFactory.class);
     typeAliasRegistry.registerAlias("JAVASSIST", JavassistProxyFactory.class);
 
+    // 设置默认的语言语言解析器
     languageRegistry.setDefaultDriverClass(XMLLanguageDriver.class);
     languageRegistry.register(RawLanguageDriver.class);
   }
@@ -967,6 +1002,11 @@ public class Configuration {
     }
   }
 
+  /**
+   * 比较严格的hashMap , 对于添加和获取进行严格的检查
+   * @param <V>
+   */
+
   protected static class StrictMap<V> extends HashMap<String, V> {
 
     private static final long serialVersionUID = -4950446264854982944L;
@@ -1013,10 +1053,12 @@ public class Configuration {
         throw new IllegalArgumentException(name + " already contains value for " + key
             + (conflictMessageProducer == null ? "" : conflictMessageProducer.apply(super.get(key), value)));
       }
+      // 将key按照"。" 切分成数组，并将最后一项作为short key
       if (key.contains(".")) {
         final String shortKey = getShortName(key);
         if (super.get(shortKey) == null) {
           super.put(shortKey, value);
+        //如果已经有short key ，组装成 Ambiguity 放入
         } else {
           super.put(shortKey, (V) new Ambiguity(shortKey));
         }
@@ -1030,6 +1072,7 @@ public class Configuration {
       if (value == null) {
         throw new IllegalArgumentException(name + " does not contain value for " + key);
       }
+      //如果是 Ambiguity ，抛出一场
       if (value instanceof Ambiguity) {
         throw new IllegalArgumentException(((Ambiguity) value).getSubject() + " is ambiguous in " + name
             + " (try using the full name including the namespace, or rename one of the entries)");

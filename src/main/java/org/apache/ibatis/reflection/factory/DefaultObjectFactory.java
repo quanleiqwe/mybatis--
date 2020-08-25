@@ -89,6 +89,11 @@ public class DefaultObjectFactory implements ObjectFactory, Serializable {
     }
   }
 
+  /**
+   * 返回类型，如果是集合和Map 类型，返回特有的子类
+   * @param type
+   * @return
+   */
   protected Class<?> resolveInterface(Class<?> type) {
     Class<?> classToCreate;
     if (type == List.class || type == Collection.class || type == Iterable.class) {

@@ -42,8 +42,10 @@ public class SqlSourceBuilder extends BaseBuilder {
 
   public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
     ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
+    // parse 方法执行过后 ， ParameterMappingTokenHandler 会将#{} 变为 parameterMapping保存在集合 parameterMappings 中 , 并且sql 中#{} 全部变为 ?
     GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
     String sql;
+    // 是否需要删除额外的空白字符
     if (configuration.isShrinkWhitespacesInSql()) {
       sql = parser.parse(removeExtraWhitespaces(originalSql));
     } else {
@@ -92,8 +94,11 @@ public class SqlSourceBuilder extends BaseBuilder {
       Map<String, String> propertiesMap = parseParameterMapping(content);
       String property = propertiesMap.get("property");
       Class<?> propertyType;
+      // 推断property 的类型
+      // 如果额外的参数有对应的get方法，直接从对应的get 方法获取类型
       if (metaParameters.hasGetter(property)) { // issue #448 get type from additional params
         propertyType = metaParameters.getGetterType(property);
+      // 如果已经注册过typeHandler ,说明要不是基础类型，要不是用户自己定义的， propertyType 就是 当前参数的类型
       } else if (typeHandlerRegistry.hasTypeHandler(parameterType)) {
         propertyType = parameterType;
       } else if (JdbcType.CURSOR.name().equals(propertiesMap.get("jdbcType"))) {
@@ -104,13 +109,17 @@ public class SqlSourceBuilder extends BaseBuilder {
         MetaClass metaClass = MetaClass.forClass(parameterType, configuration.getReflectorFactory());
         if (metaClass.hasGetter(property)) {
           propertyType = metaClass.getGetterType(property);
+        // 以上情况都不不符合的话，那就是object
         } else {
           propertyType = Object.class;
         }
       }
+      // 对于xml 形式的配置形式，如果不指定 parameterType 类型， 那么这里的 parameterType 就是object
+      // javaType 自然也就是object
       ParameterMapping.Builder builder = new ParameterMapping.Builder(configuration, property, propertyType);
       Class<?> javaType = propertyType;
       String typeHandlerAlias = null;
+      // 下面的方法就是对每个key 进行解析，最后构造成ParameterMapping
       for (Map.Entry<String, String> entry : propertiesMap.entrySet()) {
         String name = entry.getKey();
         String value = entry.getValue();

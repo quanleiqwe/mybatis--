@@ -22,11 +22,25 @@ import org.apache.ibatis.mapping.MappedStatement;
 
 /**
  * @author Clinton Begin
+ * 插入数据主键生成策略
  */
 public interface KeyGenerator {
-
+  /**
+   * insert 之前生成
+   * @param executor
+   * @param ms
+   * @param stmt
+   * @param parameter
+   */
   void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
 
+  /**
+   * insert 之后生成
+   * @param executor
+   * @param ms
+   * @param stmt
+   * @param parameter
+   */
   void processAfter(Executor executor, MappedStatement ms, Statement stmt, Object parameter);
 
 }

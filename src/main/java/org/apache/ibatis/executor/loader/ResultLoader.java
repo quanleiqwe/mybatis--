@@ -40,14 +40,32 @@ import org.apache.ibatis.transaction.TransactionFactory;
 public class ResultLoader {
 
   protected final Configuration configuration;
+  /**
+   * 用于执行延迟加载的executor 对象
+   */
   protected final Executor executor;
   protected final MappedStatement mappedStatement;
+  /**
+   * 延迟执行sql 语句的实参
+   */
   protected final Object parameterObject;
+  /**
+   * 延迟加载的对象类型
+   */
   protected final Class<?> targetType;
+  /**
+   * 对象工厂，通过反射创建延迟加载的java 对象
+   */
   protected final ObjectFactory objectFactory;
   protected final CacheKey cacheKey;
   protected final BoundSql boundSql;
+  /**
+   * 负责将list 集合转化为指定类型的对象
+   */
   protected final ResultExtractor resultExtractor;
+  /**
+   * 创建ResultLoader 的线程id
+   */
   protected final long creatorThreadId;
 
   protected boolean loaded;
@@ -66,14 +84,21 @@ public class ResultLoader {
     this.creatorThreadId = Thread.currentThread().getId();
   }
 
+  /**
+   * 加载对象
+   * @return
+   * @throws SQLException
+   */
   public Object loadResult() throws SQLException {
     List<Object> list = selectList();
+    // 把list 对象转化为指定的targetType
     resultObject = resultExtractor.extractObjectFromList(list, targetType);
     return resultObject;
   }
 
   private <E> List<E> selectList() throws SQLException {
     Executor localExecutor = executor;
+    // 如果调用该方法的线程不是创建ResultLoader 对象的线程或者 localExecutor已经关闭了，那么重新创建一个
     if (Thread.currentThread().getId() != this.creatorThreadId || localExecutor.isClosed()) {
       localExecutor = newExecutor();
     }

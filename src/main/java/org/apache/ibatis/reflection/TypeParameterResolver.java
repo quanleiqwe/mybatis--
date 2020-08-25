@@ -84,10 +84,14 @@ public class TypeParameterResolver {
   }
 
   private static Type resolveType(Type type, Type srcType, Class<?> declaringClass) {
+    //根据不同的type 实现类，进行不同的处理
     if (type instanceof TypeVariable) {
+      //如果是范型类型 ，例如： T t
       return resolveTypeVar((TypeVariable<?>) type, srcType, declaringClass);
+    // 如果是参数话类型， List<String>
     } else if (type instanceof ParameterizedType) {
       return resolveParameterizedType((ParameterizedType) type, srcType, declaringClass);
+    // 如果是范型数组 T[]
     } else if (type instanceof GenericArrayType) {
       return resolveGenericArrayType((GenericArrayType) type, srcType, declaringClass);
     } else {

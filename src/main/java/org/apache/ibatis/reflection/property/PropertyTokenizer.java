@@ -26,6 +26,14 @@ public class PropertyTokenizer implements Iterator<PropertyTokenizer> {
   private String index;
   private final String children;
 
+  /**
+   * 对与这种格式的person[0].name
+   * indexedName = person[0]
+   * index = 0
+   * name = person
+   * children = name
+   * @param fullname
+   */
   public PropertyTokenizer(String fullname) {
     int delim = fullname.indexOf('.');
     if (delim > -1) {

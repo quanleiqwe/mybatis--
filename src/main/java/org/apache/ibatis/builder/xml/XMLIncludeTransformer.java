@@ -59,17 +59,24 @@ public class XMLIncludeTransformer {
    *          Current context for static variables with values
    */
   private void applyIncludes(Node source, final Properties variablesContext, boolean included) {
+    // 如果是include 节点
     if (source.getNodeName().equals("include")) {
+      // 查找refid 指向的sql 节点, 返回深度拷贝的对象
       Node toInclude = findSqlFragment(getStringAttribute(source, "refid"), variablesContext);
+      // 解析include 下的property ，并将得到的键值对添加到variablesContext ，返回新的Properties对象
       Properties toIncludeContext = getVariablesContext(source, variablesContext);
+      // 如果当前include 中还包含include 节点，再进行解析
       applyIncludes(toInclude, toIncludeContext, true);
       if (toInclude.getOwnerDocument() != source.getOwnerDocument()) {
         toInclude = source.getOwnerDocument().importNode(toInclude, true);
       }
+      // 将include 节点替换成真正的 sql 片段
       source.getParentNode().replaceChild(toInclude, source);
+      // 将 sql 节点的子节点提取出来，并插入
       while (toInclude.hasChildNodes()) {
         toInclude.getParentNode().insertBefore(toInclude.getFirstChild(), toInclude);
       }
+     // 移除 sql 节点 节点
       toInclude.getParentNode().removeChild(toInclude);
     } else if (source.getNodeType() == Node.ELEMENT_NODE) {
       if (included && !variablesContext.isEmpty()) {
@@ -77,6 +84,7 @@ public class XMLIncludeTransformer {
         NamedNodeMap attributes = source.getAttributes();
         for (int i = 0; i < attributes.getLength(); i++) {
           Node attr = attributes.item(i);
+          // 设置include 中的 ${} 格式的属性 ,从静态变量中获取
           attr.setNodeValue(PropertyParser.parse(attr.getNodeValue(), variablesContext));
         }
       }
@@ -84,6 +92,7 @@ public class XMLIncludeTransformer {
       for (int i = 0; i < children.getLength(); i++) {
         applyIncludes(children.item(i), variablesContext, included);
       }
+    // 替换文本中的占位符 ${}
     } else if (included && (source.getNodeType() == Node.TEXT_NODE || source.getNodeType() == Node.CDATA_SECTION_NODE)
         && !variablesContext.isEmpty()) {
       // replace variables in text node

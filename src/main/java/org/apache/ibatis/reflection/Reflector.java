@@ -54,10 +54,13 @@ public class Reflector {
   private final String[] writablePropertyNames;
   private final Map<String, Invoker> setMethods = new HashMap<>();
   private final Map<String, Invoker> getMethods = new HashMap<>();
+  // get 方法对应的返回类型
   private final Map<String, Class<?>> setTypes = new HashMap<>();
+  //set 方法对应的参数类型
   private final Map<String, Class<?>> getTypes = new HashMap<>();
+  //默认构造函数
   private Constructor<?> defaultConstructor;
-
+  //不区分大小写的属性map,key 为属性的全部大写
   private Map<String, String> caseInsensitivePropertyMap = new HashMap<>();
 
   public Reflector(Class<?> clazz) {
@@ -90,6 +93,8 @@ public class Reflector {
     resolveGetterConflicts(conflictingGetters);
   }
 
+  // 对于同样的方法名，进行冲突的解决，比如说同样的方法，但是子类的返回值是父类返回值的子类，不如说某个方法的返回值是List, 子类的返回值是ArrayList,这样是允许的
+  // 那么方法签名是相同的。
   private void resolveGetterConflicts(Map<String, List<Method>> conflictingGetters) {
     for (Entry<String, List<Method>> entry : conflictingGetters.entrySet()) {
       Method winner = null;
@@ -102,15 +107,19 @@ public class Reflector {
         }
         Class<?> winnerType = winner.getReturnType();
         Class<?> candidateType = candidate.getReturnType();
+        // 返回值类型一致
         if (candidateType.equals(winnerType)) {
+          //如果不是boolean,直接退出循环
           if (!boolean.class.equals(candidateType)) {
             isAmbiguous = true;
             break;
+          // 优先选择 is 开头的返回值为boolean 的方法
           } else if (candidate.getName().startsWith("is")) {
             winner = candidate;
           }
         } else if (candidateType.isAssignableFrom(winnerType)) {
           // OK getter type is descendant
+        //如果是子类重写的方法，用子类的
         } else if (winnerType.isAssignableFrom(candidateType)) {
           winner = candidate;
         } else {
@@ -123,6 +132,7 @@ public class Reflector {
   }
 
   private void addGetMethod(String name, Method method, boolean isAmbiguous) {
+    //如果是是模糊的，AmbiguousMethodInvoker 在调用invoke 会报错
     MethodInvoker invoker = isAmbiguous
         ? new AmbiguousMethodInvoker(method, MessageFormat.format(
             "Illegal overloaded getter method with ambiguous type for property ''{0}'' in class ''{1}''. This breaks the JavaBeans specification and can cause unpredictable results.",
@@ -147,26 +157,33 @@ public class Reflector {
       list.add(method);
     }
   }
-
+  //解决set 方法冲突
+  // 可能会出现同方法名，不同参数
+  //同方法名，参数存在父子类关系
   private void resolveSetterConflicts(Map<String, List<Method>> conflictingSetters) {
     for (Entry<String, List<Method>> entry : conflictingSetters.entrySet()) {
       String propName = entry.getKey();
       List<Method> setters = entry.getValue();
       Class<?> getterType = getTypes.get(propName);
+      // get 方法是不是模糊的
       boolean isGetterAmbiguous = getMethods.get(propName) instanceof AmbiguousMethodInvoker;
+      //set 方法是不是模糊的
       boolean isSetterAmbiguous = false;
       Method match = null;
       for (Method setter : setters) {
+        // 如果get 不是模糊的，并且set方法的第一个参数就是get的返回值，这个是最优的
         if (!isGetterAmbiguous && setter.getParameterTypes()[0].equals(getterType)) {
           // should be the best match
           match = setter;
           break;
         }
+        // 如果不是set 方法不是模糊的，
         if (!isSetterAmbiguous) {
           match = pickBetterSetter(match, setter, propName);
           isSetterAmbiguous = match == null;
         }
       }
+      // 如果最后set 方法是模糊的，那么不用添加，添加的操作已经放到这里了 pickBetterSetter
       if (match != null) {
         addSetMethod(propName, match);
       }
@@ -179,6 +196,7 @@ public class Reflector {
     }
     Class<?> paramType1 = setter1.getParameterTypes()[0];
     Class<?> paramType2 = setter2.getParameterTypes()[0];
+    //如果参数存在父子类关系，返回子类的method
     if (paramType1.isAssignableFrom(paramType2)) {
       return setter2;
     } else if (paramType2.isAssignableFrom(paramType1)) {
@@ -221,7 +239,7 @@ public class Reflector {
     }
     return result;
   }
-
+  // 添加类中没有对应get 和set方法的属性
   private void addFields(Class<?> clazz) {
     Field[] fields = clazz.getDeclaredFields();
     for (Field field : fields) {
@@ -230,6 +248,7 @@ public class Reflector {
         // modification of final fields through reflection (JSR-133). (JGB)
         // pr #16 - final static can only be set by the classloader
         int modifiers = field.getModifiers();
+        //如果不是final和static 修饰的字段，才添加
         if (!(Modifier.isFinal(modifiers) && Modifier.isStatic(modifiers))) {
           addSetField(field);
         }
@@ -238,6 +257,7 @@ public class Reflector {
         addGetField(field);
       }
     }
+    //递归添加父类的字段
     if (clazz.getSuperclass() != null) {
       addFields(clazz.getSuperclass());
     }

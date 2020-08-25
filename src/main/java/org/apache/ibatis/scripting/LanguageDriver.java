@@ -23,6 +23,9 @@ import org.apache.ibatis.parsing.XNode;
 import org.apache.ibatis.scripting.defaults.DefaultParameterHandler;
 import org.apache.ibatis.session.Configuration;
 
+/**
+ *  语言解析器，常用的为xml 解析器
+ */
 public interface LanguageDriver {
 
   /**

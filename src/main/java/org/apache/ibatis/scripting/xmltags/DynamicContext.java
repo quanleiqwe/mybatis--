@@ -28,6 +28,7 @@ import org.apache.ibatis.session.Configuration;
 
 /**
  * @author Clinton Begin
+ * 动态语句上下文，保存着动态语句的sql
  */
 public class DynamicContext {
 
@@ -37,12 +38,26 @@ public class DynamicContext {
   static {
     OgnlRuntime.setPropertyAccessor(ContextMap.class, new ContextAccessor());
   }
-
+  /**
+   *   动态的参数，重写了HashMap 的get 方法
+   */
   private final ContextMap bindings;
+  /**
+   *   最后拼接而成的sql
+   */
   private final StringJoiner sqlBuilder = new StringJoiner(" ");
+  /**
+   * 类似于自增，唯一用到的地方是foreach sql node 中会用来生成每次item 的key
+   */
   private int uniqueNumber = 0;
 
+  /**
+   *
+   * @param configuration
+   * @param parameterObject 执行sql 语句传入的参数
+   */
   public DynamicContext(Configuration configuration, Object parameterObject) {
+    // 参数类型不是Map,将parameterObject 传入ContextMap 构造函数
     if (parameterObject != null && !(parameterObject instanceof Map)) {
       MetaObject metaObject = configuration.newMetaObject(parameterObject);
       boolean existsTypeHandler = configuration.getTypeHandlerRegistry().hasTypeHandler(parameterObject.getClass());

@@ -19,18 +19,22 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.ibatis.cache.Cache;
 
-/**
+/** 定时缓存，每隔一段时间就清除缓存
  * @author Clinton Begin
  */
 public class ScheduledCache implements Cache {
 
   private final Cache delegate;
+  //清除缓存时间
   protected long clearInterval;
+  //最后一次清除时间
   protected long lastClear;
 
   public ScheduledCache(Cache delegate) {
     this.delegate = delegate;
+    //默认是一小时
     this.clearInterval = TimeUnit.HOURS.toMillis(1);
+    //设置为当前时间
     this.lastClear = System.currentTimeMillis();
   }
 
@@ -83,6 +87,7 @@ public class ScheduledCache implements Cache {
   }
 
   private boolean clearWhenStale() {
+    //如果超过了clearInterval，清除缓存
     if (System.currentTimeMillis() - lastClear > clearInterval) {
       clear();
       return true;

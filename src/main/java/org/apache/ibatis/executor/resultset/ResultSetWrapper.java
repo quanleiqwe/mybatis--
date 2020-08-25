@@ -46,6 +46,7 @@ public class ResultSetWrapper {
   private final List<String> columnNames = new ArrayList<>();
   private final List<String> classNames = new ArrayList<>();
   private final List<JdbcType> jdbcTypes = new ArrayList<>();
+  // 每个参数对应的type handler ， 第一个 key 为 columnName ， 第二个key 为 类型 ,构造函数的时候并没有初始化， 调用 getTypeHandler 方法才进行设置值
   private final Map<String, Map<Class<?>, TypeHandler<?>>> typeHandlerMap = new HashMap<>();
   private final Map<String, List<String>> mappedColumnNamesMap = new HashMap<>();
   private final Map<String, List<String>> unMappedColumnNamesMap = new HashMap<>();
@@ -57,6 +58,8 @@ public class ResultSetWrapper {
     final ResultSetMetaData metaData = rs.getMetaData();
     final int columnCount = metaData.getColumnCount();
     for (int i = 1; i <= columnCount; i++) {
+      // columnNames 最终是从resultSet 中的 metaData 中获取的
+      // getColumnLabel 返回mysql 中指定的列名，比如说这条sql : select person_id as u_id ,getColumnLabel 返回的是u_id , 如果没有指定，返回的值同 getColumnName
       columnNames.add(configuration.isUseColumnLabel() ? metaData.getColumnLabel(i) : metaData.getColumnName(i));
       jdbcTypes.add(JdbcType.forCode(metaData.getColumnType(i)));
       classNames.add(metaData.getColumnClassName(i));
@@ -102,18 +105,22 @@ public class ResultSetWrapper {
   public TypeHandler<?> getTypeHandler(Class<?> propertyType, String columnName) {
     TypeHandler<?> handler = null;
     Map<Class<?>, TypeHandler<?>> columnHandlers = typeHandlerMap.get(columnName);
+    // 先获取 columnHandlers ，没有的话，先创建
     if (columnHandlers == null) {
       columnHandlers = new HashMap<>();
       typeHandlerMap.put(columnName, columnHandlers);
     } else {
       handler = columnHandlers.get(propertyType);
     }
+    // handler 为空
     if (handler == null) {
       JdbcType jdbcType = getJdbcType(columnName);
+      // 通过 typeHandlerRegistry 获取
       handler = typeHandlerRegistry.getTypeHandler(propertyType, jdbcType);
       // Replicate logic of UnknownTypeHandler#resolveTypeHandler
       // See issue #59 comment 10
       if (handler == null || handler instanceof UnknownTypeHandler) {
+        // 获取resultSet 中该类对应的类型
         final int index = columnNames.indexOf(columnName);
         final Class<?> javaType = resolveClass(classNames.get(index));
         if (javaType != null && jdbcType != null) {
@@ -170,6 +177,13 @@ public class ResultSetWrapper {
     return mappedColumnNames;
   }
 
+  /**
+   * 获取需要自动映射的属性，返回的属性名为  columnPrefix + property
+   * @param resultMap
+   * @param columnPrefix
+   * @return
+   * @throws SQLException
+   */
   public List<String> getUnmappedColumnNames(ResultMap resultMap, String columnPrefix) throws SQLException {
     List<String> unMappedColumnNames = unMappedColumnNamesMap.get(getMapKey(resultMap, columnPrefix));
     if (unMappedColumnNames == null) {

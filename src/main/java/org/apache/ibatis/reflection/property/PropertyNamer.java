@@ -23,11 +23,12 @@ import org.apache.ibatis.reflection.ReflectionException;
  * @author Clinton Begin
  */
 public final class PropertyNamer {
-
+  // 通过将构造方法设置成私有的来防止工具类的初始化
   private PropertyNamer() {
     // Prevent Instantiation of Static Class
   }
 
+  //将方法名转化为属性
   public static String methodToProperty(String name) {
     if (name.startsWith("is")) {
       name = name.substring(2);

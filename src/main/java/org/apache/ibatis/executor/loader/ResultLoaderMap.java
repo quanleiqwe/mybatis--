@@ -46,7 +46,9 @@ import org.apache.ibatis.session.RowBounds;
  * @author Franta Mejta
  */
 public class ResultLoaderMap {
-
+  /**
+   * loaderMap 对象 ，key 为属性
+   */
   private final Map<String, LoadPair> loaderMap = new HashMap<>();
 
   public void addLoader(String property, MetaObject metaResultObject, ResultLoader resultLoader) {
@@ -76,6 +78,7 @@ public class ResultLoaderMap {
   }
 
   public boolean load(String property) throws SQLException {
+    // 加载完需要移除
     LoadPair pair = loaderMap.remove(property.toUpperCase(Locale.ENGLISH));
     if (pair != null) {
       pair.load();
@@ -88,6 +91,10 @@ public class ResultLoaderMap {
     loaderMap.remove(property.toUpperCase(Locale.ENGLISH));
   }
 
+  /**
+   * 加载loaderMap 中所有属性
+   * @throws SQLException
+   */
   public void loadAll() throws SQLException {
     final Set<String> methodNameSet = loaderMap.keySet();
     String[] methodNames = methodNameSet.toArray(new String[methodNameSet.size()]);
@@ -117,6 +124,7 @@ public class ResultLoaderMap {
     private final transient Object serializationCheck = new Object();
     /**
      * Meta object which sets loaded properties.
+     * 外层对象
      */
     private transient MetaObject metaResultObject;
     /**
@@ -133,10 +141,12 @@ public class ResultLoaderMap {
     private Class<?> configurationFactory;
     /**
      * Name of the unread property.
+     * 属性
      */
     private String property;
     /**
      * ID of SQL statement which loads the property.
+     * statement 的id
      */
     private String mappedStatement;
     /**
@@ -215,7 +225,7 @@ public class ResultLoaderMap {
         this.resultLoader = new ResultLoader(old.configuration, new ClosedExecutor(), old.mappedStatement,
                 old.parameterObject, old.targetType, old.cacheKey, old.boundSql);
       }
-
+      // 获取数据后并设置到外层对象
       this.metaResultObject.setValue(property, this.resultLoader.loadResult());
     }
 

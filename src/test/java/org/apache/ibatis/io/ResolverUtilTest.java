@@ -100,7 +100,7 @@ class ResolverUtilTest {
   @Test
   void find() {
     ResolverUtil<VFS> resolverUtil = new ResolverUtil<>();
-    resolverUtil.find(new ResolverUtil.IsA(VFS.class), "org.apache.ibatis.io");
+    resolverUtil.find(new ResolverUtil.IsA(Object.class), "net.sf.cglib.beans");
     Set<Class<? extends VFS>> classSets = resolverUtil.getClasses();
     //org.apache.ibatis.io.VFS
     //org.apache.ibatis.io.DefaultVFS
@@ -141,7 +141,6 @@ class ResolverUtilTest {
     ResolverUtil.AnnotatedWith annotatedWith = new ResolverUtil.AnnotatedWith(CacheNamespace.class);
     assertTrue(annotatedWith.toString().contains("@" + CacheNamespace.class.getSimpleName()));
   }
-
 
   @CacheNamespace(readWrite = false)
   private interface TestMapper {

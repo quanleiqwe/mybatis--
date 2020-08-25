@@ -19,6 +19,7 @@ import java.util.List;
 
 /**
  * @author Clinton Begin
+ *  这个节点以前是可以和when 和otherwise 来进行配合，新版本已经移除 when 和 otherwise
  */
 public class ChooseSqlNode implements SqlNode {
   private final SqlNode defaultSqlNode;

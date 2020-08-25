@@ -25,17 +25,22 @@ import org.apache.ibatis.cache.Cache;
 /**
  * Soft Reference cache decorator
  * Thanks to Dr. Heinz Kabutz for his guidance here.
- *
+ *  软引用cache
  * @author Clinton Begin
  */
 public class SoftCache implements Cache {
+  // 强引用队列,最近使用过的缓存不会被GC，通过向其中添加Value来实现
   private final Deque<Object> hardLinksToAvoidGarbageCollection;
+  // 软引用队列，用来记录已经被GC过的缓存对应项
   private final ReferenceQueue<Object> queueOfGarbageCollectedEntries;
+  // 原始缓存
   private final Cache delegate;
+  //强连接的个数
   private int numberOfHardLinks;
 
   public SoftCache(Cache delegate) {
     this.delegate = delegate;
+    //强引用的个数
     this.numberOfHardLinks = 256;
     this.hardLinksToAvoidGarbageCollection = new LinkedList<>();
     this.queueOfGarbageCollectedEntries = new ReferenceQueue<>();
@@ -56,6 +61,13 @@ public class SoftCache implements Cache {
     this.numberOfHardLinks = size;
   }
 
+  /**
+   * 操作：1。清空已经被垃圾回收期清掉的key
+   *      2。向缓存中添加对象
+   * @param key
+   *          Can be any object but usually it is a {@link CacheKey}
+   * @param value
+   */
   @Override
   public void putObject(Object key, Object value) {
     removeGarbageCollectedItems();
@@ -67,14 +79,18 @@ public class SoftCache implements Cache {
     Object result = null;
     @SuppressWarnings("unchecked") // assumed delegate cache is totally managed by this cache
     SoftReference<Object> softReference = (SoftReference<Object>) delegate.getObject(key);
+    // 存在对象
     if (softReference != null) {
       result = softReference.get();
+     //软引用指向的对象的为空，说明被清理掉了，此时清除key
       if (result == null) {
         delegate.removeObject(key);
       } else {
         // See #586 (and #335) modifications need more than a read lock
         synchronized (hardLinksToAvoidGarbageCollection) {
+          // 将value添加到队列头部，由于没有进行是否存在的判断，所以同一个对象可能被添加多次
           hardLinksToAvoidGarbageCollection.addFirst(result);
+          //超出数量，移除
           if (hardLinksToAvoidGarbageCollection.size() > numberOfHardLinks) {
             hardLinksToAvoidGarbageCollection.removeLast();
           }
@@ -98,7 +114,7 @@ public class SoftCache implements Cache {
     removeGarbageCollectedItems();
     delegate.clear();
   }
-
+  //清空已经被垃圾回收过的软引用
   private void removeGarbageCollectedItems() {
     SoftEntry sv;
     while ((sv = (SoftEntry) queueOfGarbageCollectedEntries.poll()) != null) {

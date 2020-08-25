@@ -21,6 +21,7 @@ import java.util.List;
 
 /**
  * @author Clinton Begin
+ * 插件链
  */
 public class InterceptorChain {
 

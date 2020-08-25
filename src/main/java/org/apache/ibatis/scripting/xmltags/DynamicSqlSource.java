@@ -20,7 +20,7 @@ import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.session.Configuration;
 
-/**
+/** 处理动态sql
  * @author Clinton Begin
  */
 public class DynamicSqlSource implements SqlSource {
@@ -36,11 +36,15 @@ public class DynamicSqlSource implements SqlSource {
   @Override
   public BoundSql getBoundSql(Object parameterObject) {
     DynamicContext context = new DynamicContext(configuration, parameterObject);
+    //这里apply解析完，会将所有${} 类型的填充为具体的值，对于#{}类型的是不会进行填充的
     rootSqlNode.apply(context);
+    // sqlSourceParser 的parse 方法会将#{age,javaType=int,jdbcType=NUMERIC,typeHandler=MyTypeHandler} 解析，并且将#{} 解析为替换
     SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
     Class<?> parameterType = parameterObject == null ? Object.class : parameterObject.getClass();
+    //这里返回的对象是 StaticSqlSource
     SqlSource sqlSource = sqlSourceParser.parse(context.getSql(), parameterType, context.getBindings());
     BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
+    // 把context 的bindings 的信息放入 metaParameters
     context.getBindings().forEach(boundSql::setAdditionalParameter);
     return boundSql;
   }

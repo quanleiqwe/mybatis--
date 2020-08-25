@@ -29,6 +29,8 @@ import java.util.HashMap;
  * attribute = name '=' value
  * </pre>
  *
+ * 对于这种形式的进行解析 age,javaType=int,jdbcType=NUMERIC,typeHandler=MyTypeHandler
+ *  参数可以写成一下形式，该类就是解析这个的,并返回
  * @author Frank D. Martinez [mnesarco]
  */
 public class ParameterExpression extends HashMap<String, String> {

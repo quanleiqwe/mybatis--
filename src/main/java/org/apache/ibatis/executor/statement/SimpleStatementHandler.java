@@ -47,9 +47,13 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     Object parameterObject = boundSql.getParameterObject();
     KeyGenerator keyGenerator = mappedStatement.getKeyGenerator();
     int rows;
+    // 执行sql ,生成自增id 并设置到参数重
+    // 如果数据库可以自动生成id
     if (keyGenerator instanceof Jdbc3KeyGenerator) {
+      // 设置要返回自增id 值
       statement.execute(sql, Statement.RETURN_GENERATED_KEYS);
       rows = statement.getUpdateCount();
+      // 设置参数
       keyGenerator.processAfter(executor, mappedStatement, statement, parameterObject);
     } else if (keyGenerator instanceof SelectKeyGenerator) {
       statement.execute(sql);
@@ -82,6 +86,12 @@ public class SimpleStatementHandler extends BaseStatementHandler {
     return resultSetHandler.handleCursorResultSets(statement);
   }
 
+  /**
+   * 返回的是底层的 Statement,不存在 占位符的情况，所以该方法是空实现 parameterize
+   * @param connection
+   * @return
+   * @throws SQLException
+   */
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {

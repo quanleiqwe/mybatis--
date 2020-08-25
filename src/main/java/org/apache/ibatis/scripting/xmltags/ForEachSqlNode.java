@@ -51,15 +51,18 @@ public class ForEachSqlNode implements SqlNode {
   @Override
   public boolean apply(DynamicContext context) {
     Map<String, Object> bindings = context.getBindings();
+    // 通过ognl 表达式获取对应的集合
     final Iterable<?> iterable = evaluator.evaluateIterable(collectionExpression, bindings);
     if (!iterable.iterator().hasNext()) {
       return true;
     }
     boolean first = true;
+    // 添加open
     applyOpen(context);
     int i = 0;
     for (Object o : iterable) {
       DynamicContext oldContext = context;
+      // 如果是第一个的，分隔符为空
       if (first || separator == null) {
         context = new PrefixedContext(context, "");
       } else {
@@ -67,15 +70,19 @@ public class ForEachSqlNode implements SqlNode {
       }
       int uniqueNumber = context.getUniqueNumber();
       // Issue #709
+      //如果是map 的 entry
       if (o instanceof Map.Entry) {
         @SuppressWarnings("unchecked")
         Map.Entry<Object, Object> mapEntry = (Map.Entry<Object, Object>) o;
         applyIndex(context, mapEntry.getKey(), uniqueNumber);
         applyItem(context, mapEntry.getValue(), uniqueNumber);
       } else {
+        // 将item 和 index 放入到 bindings
         applyIndex(context, i, uniqueNumber);
         applyItem(context, o, uniqueNumber);
       }
+      // 子节点解析，这里会将#{item} 替换成用itemizeItem生成的key ,比如噢： #{__frch_item_0} 或者是这样的 #{__frch_item_1} 。。。  ，
+      // 并且itemizeItem 方法生成的key 也会在bindings设置对应的值，这样最后就可以统一设置值
       contents.apply(new FilteredDynamicContext(configuration, context, index, item, uniqueNumber));
       if (first) {
         first = !((PrefixedContext) context).isPrefixApplied();
@@ -83,7 +90,9 @@ public class ForEachSqlNode implements SqlNode {
       context = oldContext;
       i++;
     }
+    // 添加close
     applyClose(context);
+    // 从bindings 移除item和index, 但是通过该 itemizeItem 的生成的key是不会移除的
     context.getBindings().remove(item);
     context.getBindings().remove(index);
     return true;

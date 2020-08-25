@@ -24,6 +24,7 @@ import org.apache.ibatis.session.Configuration;
 
 /**
  * @author Clinton Begin
+ * 静态的sqlSouce, DynamicSqlSource 和 RawSqlSource 都会用到
  */
 public class StaticSqlSource implements SqlSource {
 

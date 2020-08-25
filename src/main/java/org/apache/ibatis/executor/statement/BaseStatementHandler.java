@@ -41,11 +41,20 @@ public abstract class BaseStatementHandler implements StatementHandler {
   protected final Configuration configuration;
   protected final ObjectFactory objectFactory;
   protected final TypeHandlerRegistry typeHandlerRegistry;
+  /**
+   * 将结果集映射成对象
+   */
   protected final ResultSetHandler resultSetHandler;
+  /**
+   * 使用实参替换sql 中的 ?
+   */
   protected final ParameterHandler parameterHandler;
 
   protected final Executor executor;
   protected final MappedStatement mappedStatement;
+  /**
+   * 分页信息
+   */
   protected final RowBounds rowBounds;
 
   protected BoundSql boundSql;
@@ -86,7 +95,9 @@ public abstract class BaseStatementHandler implements StatementHandler {
     Statement statement = null;
     try {
       statement = instantiateStatement(connection);
+      // 设置查询时间和事务过期时间， 其实最后设置的还是查询时间
       setStatementTimeout(statement, transactionTimeout);
+      // 设置
       setFetchSize(statement);
       return statement;
     } catch (SQLException e) {
@@ -98,6 +109,12 @@ public abstract class BaseStatementHandler implements StatementHandler {
     }
   }
 
+  /**
+   * 获取一个 statement ， 由子类实现
+   * @param connection
+   * @return
+   * @throws SQLException
+   */
   protected abstract Statement instantiateStatement(Connection connection) throws SQLException;
 
   protected void setStatementTimeout(Statement stmt, Integer transactionTimeout) throws SQLException {

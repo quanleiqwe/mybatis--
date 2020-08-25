@@ -17,6 +17,8 @@ package org.apache.ibatis.session;
 
 /**
  * @author Clinton Begin
+ * 该类主要用于分页使用，行跳越 ， 可以加到方法里使用
+ * 但是该分页是逻辑分页，先将数据查出来，然后在进行数据的截取,一般推荐使用
  */
 public class RowBounds {
 

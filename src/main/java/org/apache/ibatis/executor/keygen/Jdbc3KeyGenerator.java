@@ -43,7 +43,7 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
-/**
+/** 用于取回数据库生成的自增id,数据插入之后调用，适用于mysql ,不适用与 oracle
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */
@@ -71,11 +71,18 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
     processBatch(ms, stmt, parameter);
   }
 
+  /**
+   * 会将sql 执行生成的主键记录到用户传递的实参中
+   * @param ms
+   * @param stmt
+   * @param parameter
+   */
   public void processBatch(MappedStatement ms, Statement stmt, Object parameter) {
     final String[] keyProperties = ms.getKeyProperties();
     if (keyProperties == null || keyProperties.length == 0) {
       return;
     }
+    // 获取stmt 的自增id ,设置到参数中
     try (ResultSet rs = stmt.getGeneratedKeys()) {
       final ResultSetMetaData rsmd = rs.getMetaData();
       final Configuration configuration = ms.getConfiguration();
@@ -92,9 +99,11 @@ public class Jdbc3KeyGenerator implements KeyGenerator {
   @SuppressWarnings("unchecked")
   private void assignKeys(Configuration configuration, ResultSet rs, ResultSetMetaData rsmd, String[] keyProperties,
       Object parameter) throws SQLException {
+    // 如果是MAP 类型
     if (parameter instanceof ParamMap || parameter instanceof StrictMap) {
       // Multi-param or single param with @Param
       assignKeysToParamMap(configuration, rs, rsmd, keyProperties, (Map<String, ?>) parameter);
+    // 如果是list 类型
     } else if (parameter instanceof ArrayList && !((ArrayList<?>) parameter).isEmpty()
         && ((ArrayList<?>) parameter).get(0) instanceof ParamMap) {
       // Multi-param or single param with @Param in batch operation

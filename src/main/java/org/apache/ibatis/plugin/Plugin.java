@@ -41,10 +41,13 @@ public class Plugin implements InvocationHandler {
   }
 
   public static Object wrap(Object target, Interceptor interceptor) {
+    // 获取interceptor 上的@Signature 中的信息
     Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
     Class<?> type = target.getClass();
+    // 获取target 实现的接口
     Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
     if (interfaces.length > 0) {
+      // 通过jdk 动态代理创建对象，这里的 InvocationHandler 就是Plugin
       return Proxy.newProxyInstance(
           type.getClassLoader(),
           interfaces,
@@ -57,7 +60,9 @@ public class Plugin implements InvocationHandler {
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
     try {
       Set<Method> methods = signatureMap.get(method.getDeclaringClass());
+      // 如果包含当前method，调用
       if (methods != null && methods.contains(method)) {
+        // 这里将参数，method , target 封装成Invocation 对象，可以通过该 proceed 方法执行目标的方法
         return interceptor.intercept(new Invocation(target, method, args));
       }
       return method.invoke(target, args);
@@ -66,6 +71,15 @@ public class Plugin implements InvocationHandler {
     }
   }
 
+  /**
+   * 返回interceptor 类上对应的注解信息
+   * 例子如下 ：
+   * @Intercepts({
+   *       @Signature(type = Map.class, method = "get", args = {Object.class})})
+   *
+   * @param interceptor
+   * @return 返回结果值key 为 type , value 为对应的method
+   */
   private static Map<Class<?>, Set<Method>> getSignatureMap(Interceptor interceptor) {
     Intercepts interceptsAnnotation = interceptor.getClass().getAnnotation(Intercepts.class);
     // issue #251
@@ -77,6 +91,7 @@ public class Plugin implements InvocationHandler {
     for (Signature sig : sigs) {
       Set<Method> methods = signatureMap.computeIfAbsent(sig.type(), k -> new HashSet<>());
       try {
+        // 通过对应的method 名称和参数来获取对应的method 对象
         Method method = sig.type().getMethod(sig.method(), sig.args());
         methods.add(method);
       } catch (NoSuchMethodException e) {
@@ -86,6 +101,7 @@ public class Plugin implements InvocationHandler {
     return signatureMap;
   }
 
+  // 获取对应的接口
   private static Class<?>[] getAllInterfaces(Class<?> type, Map<Class<?>, Set<Method>> signatureMap) {
     Set<Class<?>> interfaces = new HashSet<>();
     while (type != null) {

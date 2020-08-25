@@ -38,7 +38,7 @@ import org.apache.ibatis.reflection.property.PropertyCopier;
 import org.apache.ibatis.reflection.property.PropertyNamer;
 import org.apache.ibatis.session.Configuration;
 
-/**
+/** 大致流程和 CglibProxyFactory 一致，不同的点在于 ， javassist EnhancedResultObjectProxyImpl 中继承的是  MethodHandler ，而cglib 继承的是  MethodInterceptor
  * @author Eduardo Macarron
  */
 public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.ProxyFactory {
@@ -48,6 +48,7 @@ public class JavassistProxyFactory implements org.apache.ibatis.executor.loader.
 
   public JavassistProxyFactory() {
     try {
+      // 验证该类是否存在
       Resources.classForName("javassist.util.proxy.ProxyFactory");
     } catch (Throwable e) {
       throw new IllegalStateException("Cannot enable lazy loading because Javassist is not available. Add Javassist to your classpath.", e);

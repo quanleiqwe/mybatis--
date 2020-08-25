@@ -21,7 +21,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * @author Clinton Begin
+ * @author Clinton Beginz
  */
 public class BooleanTypeHandler extends BaseTypeHandler<Boolean> {
 

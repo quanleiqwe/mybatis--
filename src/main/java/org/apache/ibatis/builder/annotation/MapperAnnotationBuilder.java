@@ -114,7 +114,9 @@ public class MapperAnnotationBuilder {
 
   public void parse() {
     String resource = type.toString();
+
     if (!configuration.isResourceLoaded(resource)) {
+      // 加载对应的xml 文件
       loadXmlResource();
       configuration.addLoadedResource(resource);
       assistant.setCurrentNamespace(type.getName());
@@ -135,6 +137,7 @@ public class MapperAnnotationBuilder {
         }
       }
     }
+    // 进行不完整方法的解析
     parsePendingMethods();
   }
 

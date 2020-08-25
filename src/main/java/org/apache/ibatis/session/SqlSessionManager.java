@@ -29,7 +29,7 @@ import org.apache.ibatis.cursor.Cursor;
 import org.apache.ibatis.executor.BatchResult;
 import org.apache.ibatis.reflection.ExceptionUtil;
 
-/**
+/** 该方法创建的sqlSession 有俩种模式，一种是通过thread local 获取线程绑定的sqlsession 复用 , 一种是每次创建，用完之后就关闭，通过代理模式实现
  * @author Larry Meadors
  */
 public class SqlSessionManager implements SqlSessionFactory, SqlSession {
@@ -75,6 +75,9 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
     return new SqlSessionManager(sqlSessionFactory);
   }
 
+  /**
+   * 调用该方法标明使用线程绑定的sql session
+   */
   public void startManagedSession() {
     this.localSqlSession.set(openSession());
   }
@@ -344,6 +347,7 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+      // 获取当前线程绑定的sql session
       final SqlSession sqlSession = SqlSessionManager.this.localSqlSession.get();
       if (sqlSession != null) {
         try {
@@ -351,6 +355,7 @@ public class SqlSessionManager implements SqlSessionFactory, SqlSession {
         } catch (Throwable t) {
           throw ExceptionUtil.unwrapThrowable(t);
         }
+      // 创建
       } else {
         try (SqlSession autoSqlSession = openSession()) {
           try {

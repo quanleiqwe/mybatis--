@@ -15,6 +15,8 @@
  */
 package org.apache.ibatis.mapping;
 
+import java.sql.CallableStatement;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,9 +38,21 @@ public final class MappedStatement {
   private String resource;
   private Configuration configuration;
   private String id;
+  /**
+   *   这是一个给驱动的建议值，尝试让驱动程序每次批量返回的结果行数等于这个设置值。 默认值为未设置（unset）（依赖驱动）。
+   */
   private Integer fetchSize;
+  /**
+   *   这个设置是在抛出异常之前，驱动程序等待数据库返回请求结果的秒数。默认值为未设置（unset）（依赖数据库驱动）。
+   */
   private Integer timeout;
+  /**
+   *   可选 STATEMENT，PREPARED 或 CALLABLE。这会让 MyBatis 分别使用 Statement，  PreparedStatement 或 CallableStatement，默认值：PREPARED。
+   */
   private StatementType statementType;
+  /**
+   *FORWARD_ONLY，SCROLL_SENSITIVE, SCROLL_INSENSITIVE 或 DEFAULT（等价于 unset） 中的一个，默认值为 unset （依赖数据库驱动）。
+   */
   private ResultSetType resultSetType;
   private SqlSource sqlSource;
   private Cache cache;

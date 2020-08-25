@@ -17,7 +17,7 @@ package org.apache.ibatis.cache.decorators;
 
 import org.apache.ibatis.cache.Cache;
 
-/**
+/** 同步的缓存,性能比较差，对于同一个Mapper 只有一个线程可以在时间段内访问
  * @author Clinton Begin
  */
 public class SynchronizedCache implements Cache {

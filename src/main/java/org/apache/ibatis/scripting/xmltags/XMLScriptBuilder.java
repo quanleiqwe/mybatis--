@@ -66,6 +66,8 @@ public class XMLScriptBuilder extends BaseBuilder {
   public SqlSource parseScriptNode() {
     MixedSqlNode rootSqlNode = parseDynamicTags(context);
     SqlSource sqlSource;
+    // 判断是否是动态的,动态的返回DynamicSqlSource 对象，否则返回RawSqlSource对象
+    // 这里判断是否是动态的，是通过看是否有${} 和 sqlNode ,如果有，就是动态的，否则是非动态的
     if (isDynamic) {
       sqlSource = new DynamicSqlSource(configuration, rootSqlNode);
     } else {
@@ -73,21 +75,24 @@ public class XMLScriptBuilder extends BaseBuilder {
     }
     return sqlSource;
   }
-
+  // 处理所有的子节点
   protected MixedSqlNode parseDynamicTags(XNode node) {
     List<SqlNode> contents = new ArrayList<>();
     NodeList children = node.getNode().getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
       XNode child = node.newXNode(children.item(i));
+      // 是文本类型的node   类型的node
       if (child.getNode().getNodeType() == Node.CDATA_SECTION_NODE || child.getNode().getNodeType() == Node.TEXT_NODE) {
         String data = child.getStringBody("");
         TextSqlNode textSqlNode = new TextSqlNode(data);
+        // 如果有${},说明是动态的是动态的，这里说明#{}的不在动态之内
         if (textSqlNode.isDynamic()) {
           contents.add(textSqlNode);
           isDynamic = true;
         } else {
           contents.add(new StaticTextSqlNode(data));
         }
+        // 如果是node 节点，判断是否有对应的处理器,并且将对应的sqlNode 添加到contents
       } else if (child.getNode().getNodeType() == Node.ELEMENT_NODE) { // issue #628
         String nodeName = child.getNode().getNodeName();
         NodeHandler handler = nodeHandlerMap.get(nodeName);
@@ -126,6 +131,7 @@ public class XMLScriptBuilder extends BaseBuilder {
 
     @Override
     public void handleNode(XNode nodeToHandle, List<SqlNode> targetContents) {
+     // 进行子节点的解析
       MixedSqlNode mixedSqlNode = parseDynamicTags(nodeToHandle);
       String prefix = nodeToHandle.getStringAttribute("prefix");
       String prefixOverrides = nodeToHandle.getStringAttribute("prefixOverrides");

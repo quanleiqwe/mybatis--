@@ -73,10 +73,12 @@ public final class ResultSetLogger extends BaseJdbcLogger implements InvocationH
           if (isTraceEnabled()) {
             ResultSetMetaData rsmd = rs.getMetaData();
             final int columnCount = rsmd.getColumnCount();
+            //如果是第一条数据，输出表头
             if (first) {
               first = false;
               printColumnHeaders(rsmd, columnCount);
             }
+            // 输出数据具体数据
             printColumnValues(columnCount);
           }
         } else {

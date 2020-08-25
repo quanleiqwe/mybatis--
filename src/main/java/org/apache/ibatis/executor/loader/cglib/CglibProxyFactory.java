@@ -63,7 +63,7 @@ public class CglibProxyFactory implements ProxyFactory {
   public Object createDeserializationProxy(Object target, Map<String, ResultLoaderMap.LoadPair> unloadedProperties, ObjectFactory objectFactory, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     return EnhancedDeserializationProxyImpl.createProxy(target, unloadedProperties, objectFactory, constructorArgTypes, constructorArgs);
   }
-
+  // 创建代理对象
   static Object crateProxy(Class<?> type, Callback callback, List<Class<?>> constructorArgTypes, List<Object> constructorArgs) {
     Enhancer enhancer = new Enhancer();
     enhancer.setCallback(callback);
@@ -95,6 +95,7 @@ public class CglibProxyFactory implements ProxyFactory {
     private final Class<?> type;
     private final ResultLoaderMap lazyLoader;
     private final boolean aggressive;
+    // 触发延迟加载的方法列表，如果调用了该列表的方法，对全部的延迟加载属性进行加载操作
     private final Set<String> lazyLoadTriggerMethods;
     private final ObjectFactory objectFactory;
     private final List<Class<?>> constructorArgTypes;
@@ -114,6 +115,7 @@ public class CglibProxyFactory implements ProxyFactory {
       final Class<?> type = target.getClass();
       EnhancedResultObjectProxyImpl callback = new EnhancedResultObjectProxyImpl(type, lazyLoader, configuration, objectFactory, constructorArgTypes, constructorArgs);
       Object enhanced = crateProxy(type, callback, constructorArgTypes, constructorArgs);
+      // 由于是cglib 是通过创建子类来实现的，所以需要赋值属性
       PropertyCopier.copyBeanProperties(type, target, enhanced);
       return enhanced;
     }
@@ -123,6 +125,7 @@ public class CglibProxyFactory implements ProxyFactory {
       final String methodName = method.getName();
       try {
         synchronized (lazyLoader) {
+          // 当前方法是 wirteReplace 方法，暂时不知道是什么用的
           if (WRITE_REPLACE_METHOD.equals(methodName)) {
             Object original;
             if (constructorArgTypes.isEmpty()) {
@@ -137,14 +140,19 @@ public class CglibProxyFactory implements ProxyFactory {
               return original;
             }
           } else {
+            // 不是finalize 方法
             if (lazyLoader.size() > 0 && !FINALIZE_METHOD.equals(methodName)) {
+              // 如果configuration 中的 设置 为 aggressiveLazyLoading ， 或者 lazyLoadTriggerMethods 包含对象方法，全部加载
               if (aggressive || lazyLoadTriggerMethods.contains(methodName)) {
                 lazyLoader.loadAll();
+                // 如果是set 方法，从lazyLoader 中移除
               } else if (PropertyNamer.isSetter(methodName)) {
                 final String property = PropertyNamer.methodToProperty(methodName);
                 lazyLoader.remove(property);
               } else if (PropertyNamer.isGetter(methodName)) {
+                // 如果是get 方法，加载数据
                 final String property = PropertyNamer.methodToProperty(methodName);
+                // 检测是否为延迟加载的属性
                 if (lazyLoader.hasLoader(property)) {
                   lazyLoader.load(property);
                 }
@@ -152,6 +160,7 @@ public class CglibProxyFactory implements ProxyFactory {
             }
           }
         }
+        // 调用父类方法
         return methodProxy.invokeSuper(enhanced, args);
       } catch (Throwable t) {
         throw ExceptionUtil.unwrapThrowable(t);

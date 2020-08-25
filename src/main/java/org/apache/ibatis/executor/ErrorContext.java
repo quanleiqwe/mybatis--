@@ -17,6 +17,7 @@ package org.apache.ibatis.executor;
 
 /**
  * @author Clinton Begin
+ *  error 上下文，通过threadLocal 持有当前的ErrorContext ， 当发生异常时，既可将context 中的信息打印出来
  */
 public class ErrorContext {
 

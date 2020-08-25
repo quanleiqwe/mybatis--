@@ -27,35 +27,91 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
-/**
+/** 定义了数据库操作的基本方法
+ *
  * @author Clinton Begin
  */
 public interface Executor {
 
   ResultHandler NO_RESULT_HANDLER = null;
 
+  /**
+   * 更新方法
+   * @param ms
+   * @param parameter
+   * @return
+   * @throws SQLException
+   */
   int update(MappedStatement ms, Object parameter) throws SQLException;
 
+  /**
+   以下三个方法为查询方法
+   * @throws SQLException
+   */
   <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey cacheKey, BoundSql boundSql) throws SQLException;
 
   <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException;
 
   <E> Cursor<E> queryCursor(MappedStatement ms, Object parameter, RowBounds rowBounds) throws SQLException;
 
+  /**
+   * 批量执行sql
+   * @return
+   * @throws SQLException
+   */
   List<BatchResult> flushStatements() throws SQLException;
 
+  /**
+   * 提交事务
+   * @param required
+   * @throws SQLException
+   */
   void commit(boolean required) throws SQLException;
 
+  /**
+   * 回滚事务
+   * @param required
+   * @throws SQLException
+   */
   void rollback(boolean required) throws SQLException;
 
+  /**
+   * 创建缓存中用到的cacheKey 对象
+   * @param ms
+   * @param parameterObject
+   * @param rowBounds
+   * @param boundSql
+   * @return
+   */
   CacheKey createCacheKey(MappedStatement ms, Object parameterObject, RowBounds rowBounds, BoundSql boundSql);
 
+  /**
+   * 根据cacheKey 查找对象
+   * @param ms
+   * @param key
+   * @return
+   */
   boolean isCached(MappedStatement ms, CacheKey key);
 
+  /**
+   *  清空一级缓存
+   */
   void clearLocalCache();
 
+  /**
+   * 延迟加载一级缓存中的对象
+   * @param ms
+   * @param resultObject
+   * @param property
+   * @param key
+   * @param targetType
+   */
   void deferLoad(MappedStatement ms, MetaObject resultObject, String property, CacheKey key, Class<?> targetType);
 
+  /**
+   * 获取事务对象
+   * @return
+   */
   Transaction getTransaction();
 
   void close(boolean forceRollback);

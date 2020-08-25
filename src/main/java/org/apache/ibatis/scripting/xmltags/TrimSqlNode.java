@@ -30,9 +30,21 @@ import org.apache.ibatis.session.Configuration;
 public class TrimSqlNode implements SqlNode {
 
   private final SqlNode contents;
+  /**
+   * 前缀
+   */
   private final String prefix;
+  /**
+   * 后缀
+   */
   private final String suffix;
+  /**
+   * 需要覆盖的前缀
+   */
   private final List<String> prefixesToOverride;
+  /**
+   * 需要覆盖的后缀
+   */
   private final List<String> suffixesToOverride;
   private final Configuration configuration;
 

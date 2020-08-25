@@ -53,7 +53,14 @@ public class MetaClass {
     return prop.length() > 0 ? prop.toString() : null;
   }
 
+  /**
+   * 判断是否可以找到对应的属性，并不会处理下标
+   * @param name
+   * @param useCamelCaseMapping 是否使用了骆驼拼写法
+   * @return 返回值为能够解析的属性值
+   */
   public String findProperty(String name, boolean useCamelCaseMapping) {
+    // 去掉属性中的下划线
     if (useCamelCaseMapping) {
       name = name.replace("_", "");
     }

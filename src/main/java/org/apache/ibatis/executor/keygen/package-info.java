@@ -15,5 +15,6 @@
  */
 /**
  * Contains the key generators.
+ * 生成主键的类，keygen 是 Key Generator 缩写
  */
 package org.apache.ibatis.executor.keygen;

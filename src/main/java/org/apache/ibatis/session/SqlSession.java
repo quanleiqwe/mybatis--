@@ -26,7 +26,7 @@ import org.apache.ibatis.executor.BatchResult;
 /**
  * The primary Java interface for working with MyBatis.
  * Through this interface you can execute commands, get mappers and manage transactions.
- *
+ * mybatis 操作sql 的核心接口
  * @author Clinton Begin
  */
 public interface SqlSession extends Closeable {
@@ -227,6 +227,7 @@ public interface SqlSession extends Closeable {
    * Flushes batch statements and commits database connection.
    * Note that database connection will not be committed if no updates/deletes/inserts were called.
    * To force the commit call {@link SqlSession#commit(boolean)}
+   * 提交事务
    */
   void commit();
 
@@ -240,6 +241,7 @@ public interface SqlSession extends Closeable {
    * Discards pending batch statements and rolls database connection back.
    * Note that database connection will not be rolled back if no updates/deletes/inserts were called.
    * To force the rollback call {@link SqlSession#rollback(boolean)}
+   * 回滚事务
    */
   void rollback();
 

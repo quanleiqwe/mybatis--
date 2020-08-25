@@ -24,13 +24,32 @@ import org.apache.ibatis.cursor.Cursor;
 
 /**
  * @author Clinton Begin
+ * 将返回的结果集映射成对应的对象
  */
 public interface ResultSetHandler {
-
+  /**
+   * 处理结果集
+   * @param stmt
+   * @param <E>
+   * @return
+   * @throws SQLException
+   */
   <E> List<E> handleResultSets(Statement stmt) throws SQLException;
 
+  /**
+   * 处理游标结果集
+   * @param stmt
+   * @param <E>
+   * @return
+   * @throws SQLException
+   */
   <E> Cursor<E> handleCursorResultSets(Statement stmt) throws SQLException;
 
+  /**
+   * 处理存储过程的输出参数
+   * @param cs
+   * @throws SQLException
+   */
   void handleOutputParameters(CallableStatement cs) throws SQLException;
 
 }

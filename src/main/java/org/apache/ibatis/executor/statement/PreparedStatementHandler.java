@@ -72,6 +72,13 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     return resultSetHandler.handleCursorResultSets(ps);
   }
 
+  /**
+   * 这里返回的是  PreparedStatement，这里和SimpleStatementHandler不同的是，创建 PreparedStatement 已经将sql 放入了
+   * PreparedStatement 和 SimpleStatementHandler 不同，进行初始化的时候，相关信息已经被设置，比如说 sql , 是否返回自增id
+   * @param connection
+   * @return
+   * @throws SQLException
+   */
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
@@ -89,6 +96,11 @@ public class PreparedStatementHandler extends BaseStatementHandler {
     }
   }
 
+  /**
+   * 设置sql 中占位符 ？ 的值
+   * @param statement
+   * @throws SQLException
+   */
   @Override
   public void parameterize(Statement statement) throws SQLException {
     parameterHandler.setParameters((PreparedStatement) statement);

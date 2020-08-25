@@ -30,14 +30,25 @@ import org.apache.ibatis.session.Configuration;
  * the value from).
  * <p>
  * Can also have additional parameters that are created by the dynamic language (for loops, bind...).
- *
+ *  经过动态处理后的真正的SQL，包含占位符，和sql 执行的参数列表，
  * @author Clinton Begin
  */
 public class BoundSql {
-
+  /**
+   * 最后执行的sql ,有占位符？
+   */
   private final String sql;
+  /**
+   * 每个占位符对应的参数信息
+   */
   private final List<ParameterMapping> parameterMappings;
+  /**
+   * 传入的参数对象
+   */
   private final Object parameterObject;
+  /**
+   * 额外的信息，比如foreach 的item
+   */
   private final Map<String, Object> additionalParameters;
   private final MetaObject metaParameters;
 

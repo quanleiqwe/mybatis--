@@ -33,11 +33,14 @@ import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 import org.apache.ibatis.transaction.Transaction;
 
-/**
+/** 重用statement 的 executor
+ *  该类与SimpleExecutor代码逻辑很想，唯一不同的是，获取 Statement 时，会先去 statementMap 这里查找
  * @author Clinton Begin
  */
 public class ReuseExecutor extends BaseExecutor {
-
+  /**
+   * statementMap,key 为sql ,value 为对象的statement
+   */
   private final Map<String, Statement> statementMap = new HashMap<>();
 
   public ReuseExecutor(Configuration configuration, Transaction transaction) {
@@ -70,6 +73,7 @@ public class ReuseExecutor extends BaseExecutor {
 
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) {
+    // 遍历所有，关闭  Statement
     for (Statement stmt : statementMap.values()) {
       closeStatement(stmt);
     }
@@ -81,14 +85,18 @@ public class ReuseExecutor extends BaseExecutor {
     Statement stmt;
     BoundSql boundSql = handler.getBoundSql();
     String sql = boundSql.getSql();
+    // 检测是否有相同的缓存了相同模式的sql 对应的statement
     if (hasStatementFor(sql)) {
       stmt = getStatement(sql);
       applyTransactionTimeout(stmt);
     } else {
       Connection connection = getConnection(statementLog);
+      // 创建statement
       stmt = handler.prepare(connection, transaction.getTimeout());
+      // 放入map
       putStatement(sql, stmt);
     }
+    // 处理占位符
     handler.parameterize(stmt);
     return stmt;
   }

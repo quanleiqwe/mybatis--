@@ -24,7 +24,14 @@ import java.sql.SQLException;
  * @author Clinton Begin
  */
 public interface TypeHandler<T> {
-
+  /**
+   *
+   * @param ps
+   * @param i
+   * @param parameter
+   * @param jdbcType 该参数只在baseTypeHandler 中是用了，其实现类没有使用过
+   * @throws SQLException
+   */
   void setParameter(PreparedStatement ps, int i, T parameter, JdbcType jdbcType) throws SQLException;
 
   /**

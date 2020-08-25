@@ -41,6 +41,7 @@ import org.apache.ibatis.reflection.ArrayUtil;
 public abstract class BaseJdbcLogger {
 
   protected static final Set<String> SET_METHODS;
+  // 一些执行的方法
   protected static final Set<String> EXECUTE_METHODS = new HashSet<>();
 
   private final Map<Object, Object> columnMap = new HashMap<>();

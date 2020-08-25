@@ -45,6 +45,7 @@ public class SimpleExecutor extends BaseExecutor {
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();
+      // 通过 configuration 创建 StatementHandler ，然后由handler 来进行处理
       StatementHandler handler = configuration.newStatementHandler(this, ms, parameter, RowBounds.DEFAULT, null, null);
       stmt = prepareStatement(handler, ms.getStatementLog());
       return handler.update(stmt);
@@ -58,6 +59,7 @@ public class SimpleExecutor extends BaseExecutor {
     Statement stmt = null;
     try {
       Configuration configuration = ms.getConfiguration();
+      //与查询不同的是，传入的executor 是 wrapper ,而不是this
       StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
       stmt = prepareStatement(handler, ms.getStatementLog());
       return handler.query(stmt, resultHandler);
@@ -76,6 +78,11 @@ public class SimpleExecutor extends BaseExecutor {
     return cursor;
   }
 
+  /**
+   * 不支持，直接返回空
+   * @param isRollback
+   * @return
+   */
   @Override
   public List<BatchResult> doFlushStatements(boolean isRollback) {
     return Collections.emptyList();
